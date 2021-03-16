@@ -9,13 +9,15 @@ public class AimAtTarget : MonoBehaviour
     [SerializeField] private List<GameObject> targets;
 
     [SerializeField] private float torque;
+
+    [SerializeField] private bool PID = false;
     
     //PID controller variables
     [SerializeField] private float Kp = 2;
     [SerializeField] private float Kd = 2;
     [SerializeField] private float Ki = 0.1f;
     private float Integral = 0;
-    private float lastAngleDiff;
+    private float lastAngleDiff = 0;
     
     [SerializeField]
     private GameObject currentTarget;
@@ -46,20 +48,26 @@ public class AimAtTarget : MonoBehaviour
         Vector3 cross = Vector3.Cross(transform.right, orientationToOther);
         
         
-        // Attempt at PID controller. Does not work for this.
-        //float Deriv = (Kd*(angleDiff - lastAngleDiff)) / Time.fixedDeltaTime;
-        //Integral = Integral + Ki * angleDiff * Time.fixedDeltaTime;
-        //float diffStrength = angleDiff*Kp;
         
-        //rb.AddTorque(cross * (torque * (diffStrength + Integral + Deriv)));
+        if (PID)
+        {
+            // Attempt at PID controller. Does not work for this.
+            float Deriv = (Kd*(angleDiff - lastAngleDiff)) / Time.fixedDeltaTime;
+            Integral = Integral + Ki * angleDiff * Time.fixedDeltaTime;
+            float diffStrength = angleDiff*Kp;
+            
+            lastAngleDiff = angleDiff;
+            rb.AddTorque(cross * (torque * (diffStrength + Integral + Deriv))); 
+        }
+        else
+        {
+            // Simplified PID... I guess
+            float diffStrength = angleDiff / 45;
+            diffStrength = Mathf.Clamp(diffStrength, 0, 1);
+    
+            rb.AddTorque(cross * (angleDiff * torque * (diffStrength)));
+        }
         
-        // Simplified PID... I guess
-        float diffStrength = angleDiff / 45;
-        diffStrength = Mathf.Clamp(diffStrength, 0, 1);
-
-        rb.AddTorque(cross * (angleDiff*torque * diffStrength));
-
-        lastAngleDiff = angleDiff;
     }
     
     protected void LateUpdate()
