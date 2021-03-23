@@ -45,6 +45,8 @@ public class AimAtTarget : MonoBehaviour
         orientationToOther = Vector3.Normalize(otherPos - thisPos);
         
         float angleDiff = Vector3.Angle(transform.right, orientationToOther);
+        var someDiffVector = transform.right - orientationToOther;
+        var someDiff = someDiffVector.x + someDiffVector.y + someDiffVector.z;
         Vector3 cross = Vector3.Cross(transform.right, orientationToOther);
         
         
@@ -52,12 +54,14 @@ public class AimAtTarget : MonoBehaviour
         if (PID)
         {
             // Attempt at PID controller. Does not work for this.
-            float Deriv = (Kd*(angleDiff - lastAngleDiff)) / Time.fixedDeltaTime;
-            Integral = Integral + Ki * angleDiff * Time.fixedDeltaTime;
+            float Deriv = (Kd*(someDiff - lastAngleDiff)) / Time.fixedDeltaTime;
+            Integral = Integral + Ki * someDiff * Time.fixedDeltaTime;
             float diffStrength = angleDiff*Kp;
             
-            lastAngleDiff = angleDiff;
-            rb.AddTorque(cross * (torque * (diffStrength + Integral + Deriv))); 
+            lastAngleDiff = someDiff;
+            rb.AddTorque(cross * (torque * (diffStrength + Integral + Deriv)));
+            print("intergral:" + Integral);
+            print("Derive:" + Deriv);
         }
         else
         {
